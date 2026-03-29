@@ -1,3 +1,13 @@
 spring:
   application:
     name: voting-system
+  datasource:
+    url: jdbc:mysql://localhost:3306/voting_db
+    username: root
+    password: Praveer@2004
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+server:
+  port: 8080

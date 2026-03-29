@@ -1,56 +1,49 @@
-import React, { useState } from "react";
-import API from "../services/api";
+﻿import React, { useState } from "react";
 
-export default function CastVote() {
-  const [step, setStep] = useState(1);
-  const [vote, setVote] = useState({
-    voterId: 1,
-    electionId: 1,
-    candidateId: null
-  });
-  const [otp, setOtp] = useState("");
+function CastVote() {
+  const [candidate, setCandidate] = useState("");
+  const [status, setStatus] = useState("");
 
-  const sendOtp = async () => {
-    await API.post("/vote/send-otp?userId=1");
-    setStep(4);
-  };
+  const handleVote = async () => {
+    if (!candidate) {
+      alert("Please select a candidate!");
+      return;
+    }
 
-  const verifyOtp = async () => {
-    await API.post(`/vote/verify-otp?userId=1&otp=${otp}`);
-    await API.post("/vote/cast", vote);
-    alert("Vote Cast Successfully!");
+    const candidateId = candidate === "Candidate A" ? 1 : 2;
+
+    try {
+      const response = await fetch("http://localhost:8080/api/votes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: 1,
+          electionId: 1,
+          candidateId: candidateId
+        })
+      });
+
+      const message = await response.text();
+      setStatus(message);
+      alert(message);
+    } catch (error) {
+      console.error("Error casting vote:", error);
+      setStatus("Failed to cast vote. See console for details.");
+    }
   };
 
   return (
     <div>
-      <h2>Cast Vote</h2>
-
-      {step === 1 && (
-        <button onClick={() => setStep(2)}>Select Election</button>
-      )}
-
-      {step === 2 && (
-        <button onClick={() => {
-          setVote({...vote, candidateId: 101});
-          setStep(3);
-        }}>
-          Select Candidate
-        </button>
-      )}
-
-      {step === 3 && (
-        <button onClick={sendOtp}>Confirm & Send OTP</button>
-      )}
-
-      {step === 4 && (
-        <div>
-          <input
-            placeholder="Enter OTP"
-            onChange={(e) => setOtp(e.target.value)}
-          />
-          <button onClick={verifyOtp}>Verify & Submit</button>
-        </div>
-      )}
+      <h2>Cast Your Vote</h2>
+      <select value={candidate} onChange={(e) => setCandidate(e.target.value)}>
+        <option value="">--Select Candidate--</option>
+        <option value="Candidate A">Candidate A</option>
+        <option value="Candidate B">Candidate B</option>
+      </select>
+      <button onClick={handleVote}>Submit Vote</button>
+      {status && <p>{status}</p>}
     </div>
   );
 }
+
+export default CastVote;
